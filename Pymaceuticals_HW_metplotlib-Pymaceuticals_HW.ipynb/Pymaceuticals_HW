@@ -1,1 +1,222 @@
 # Pymaceuticals_HW_metplotlib_Pymaceuticals_HW.ipynb
+
+                                                      Three observable trends
+•	Drug Capomulin, according to the study, is the most effective and successful drug treatment in, decreasing tumor volume, containing metastatic spread and survival rate throughout the course of treatment.
+•	Other treatments were less effective than no treatments. Infubinol was slightly effective. Mice treated with Infubinol had shrunk tumor growth and metastatic site expanse than mice treated with Ketapril or placebo, although the death rate was higher than the other two drugs studied. Infubinol was perhaps more effective than the placebo and requires additional investigation and alteration.
+•	Ketapril is less effective at limiting tumor volume and metastatic spread than the placebo in this study. Mice treated with Ketapril and placebo had similar growth of metastatic sites errors that overlapped. This may mislead to assume that Ketapril is not an effective method of treatment.
+
+
+# Dependencies and Setup
+%matplotlib inline
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sn
+import numpy as np
+from math import trunc
+
+# Hide warning messages in notebook
+import warnings
+warnings.filterwarnings('ignore')
+
+# File to Load (Remember to Change These)
+mouse_drug_data_to_load = "data/mouse_drug_data.csv"
+clinical_trial_data_to_load = "data/clinicaltrial_data.csv"
+
+# Read the Mouse and Drug Data and the Clinical Trial Data
+mouse_drug_df = pd.read_csv(mouse_drug_data_to_load)
+clinical_trial_df = pd.read_csv(clinical_trial_data_to_load)
+
+# Combine the data into a single dataset
+combined = pd.merge(clinical_trial_df, mouse_drug_df, on=('Mouse ID'))
+
+# Display the data table for preview
+combined.head()
+
+ Tumor Response to Treatment
+
+# Store the Mean Tumor Volume Data Grouped by Drug and Timepoint 
+Tumor_response =  combined.groupby(['Drug','Timepoint']).mean()['Tumor Volume (mm3)']
+
+merged_df = pd.merge(clinical_trial_df, mouse_drug_df, on=('Mouse ID'))
+merged_df.head()
+
+# Convert to DataFrame
+tumor_vol_df = merged_df.loc[:,['Drug', 'Timepoint', 'Tumor Volume (mm3)']]
+
+# Preview DataFrame
+tumor_vol_df.head()
+
+# Store the Standard Error of Tumor Volumes Grouped by Drug and Timepoint
+# Convert to DataFrame
+mean_sem_tv = tumor_vol_df.groupby(['Drug', 'Timepoint']).agg({"Tumor Volume (mm3)" :["mean", "sem"]})
+
+# Preview DataFrame
+mean_sem_tv.head()
+
+# Minor Data Munging to Re-Format the Data Frames
+Tumor_response = pd.pivot_table(combined, index='Timepoint', columns='Drug', values='Tumor Volume (mm3)', aggfunc = np.mean)
+
+# Preview that Reformatting worked
+Tumor_response
+
+# Generate the Plot (with Error Bars)
+Timepoint = Tumor_response.index
+plt.figure(figsize=(14,6))
+plt.errorbar(Timepoint, Tumor_response['Capomulin'],yerr=Tumor_response['Capomulin'].sem(), marker ='o', linestyle='--', label="Capomulin")
+plt.errorbar(Timepoint, Tumor_response['Ceftamin'],yerr=Tumor_response['Ceftamin'].sem(), marker ='^', linestyle='--', label="Ceftamin")
+plt.errorbar(Timepoint, Tumor_response['Infubinol'],yerr=Tumor_response['Infubinol'].sem(), marker ='s', linestyle='--', label="Infubinol")
+plt.errorbar(Timepoint, Tumor_response['Ketapril'],yerr=Tumor_response['Ketapril'].sem(), marker ='p', linestyle='--', label="Ketapril")
+plt.errorbar(Timepoint, Tumor_response['Naftisol'],yerr=Tumor_response['Naftisol'].sem(), marker ='+', linestyle='--', label="Naftisol")
+plt.errorbar(Timepoint, Tumor_response['Placebo'],yerr=Tumor_response['Placebo'].sem(), marker ='d', linestyle='--', label="Placebo")
+plt.errorbar(Timepoint, Tumor_response['Propriva'],yerr=Tumor_response['Propriva'].sem(), marker ='4', linestyle='--', label="Propriva")
+plt.errorbar(Timepoint, Tumor_response['Ramicane'],yerr=Tumor_response['Ramicane'].sem(), marker ='*', linestyle='--', label="Ramicane")
+plt.errorbar(Timepoint, Tumor_response['Stelasyn'],yerr=Tumor_response['Stelasyn'].sem(), marker ='h', linestyle='--', label="Stelasyn")
+plt.errorbar(Timepoint, Tumor_response['Zoniferol'],yerr=Tumor_response['Zoniferol'].sem(), marker ='1', linestyle='--', label="Zoniferol")
+plt.gca().set(xlabel = 'Time(Days)', ylabel = 'Tumor Volume (mm3)',title = 'Tumor Response to Treatment',xlim = (0,max(Timepoint)))
+#legend 
+plt.legend(loc = 'best', frameon=True)
+plt.grid()
+
+# Save the Figure
+# Show the Figure
+plt.show()
+
+## Metastatic Response to Treatment
+
+# Store the Mean Met. Site Data Grouped by Drug and Timepoint 
+# Convert to DataFrame
+Timepoint_response =  combined.groupby(['Drug','Timepoint']).mean()[['Metastatic Sites']]
+
+
+# Preview DataFrame
+Timepoint_response.head()
+
+# Store the Standard Error associated with Met. Sites Grouped by Drug and Timepoint 
+# Convert to DataFrame
+meta_sites_df = merged_df.loc[:,['Drug', 'Timepoint', 'Metastatic Sites']]
+mean_sem_meta = meta_sites_df.groupby(['Drug', 'Timepoint']).agg({"Metastatic Sites" :["sem"]})
+
+# Preview DataFrame
+mean_sem_meta.head()
+
+# Minor Data Munging to Re-Format the Data Frames
+# Preview that Reformatting worked
+Metastatic_sites = pd.pivot_table(Timepoint_response, index='Timepoint', columns='Drug', values='Metastatic Sites', aggfunc = np.mean)
+Metastatic_sites
+
+# Generate the Plot (with Error Bars)
+Metastatic = Metastatic_sites.index
+plt.figure(figsize=(16,12))
+
+plt.plot(Metastatic, Metastatic_sites['Capomulin'], marker ='o', linestyle='--', label="Capomulin")
+plt.plot(Metastatic, Metastatic_sites['Ceftamin'], marker ='^', linestyle='--', label="Ceftamin")
+plt.plot(Metastatic, Metastatic_sites['Infubinol'], marker ='s', linestyle='--', label="Infubinol")
+plt.plot(Metastatic, Metastatic_sites['Ketapril'], marker ='p', linestyle='--', label="Ketapril")
+plt.plot(Metastatic, Metastatic_sites['Naftisol'], marker ='+', linestyle='--', label="Naftisol")
+plt.plot(Metastatic, Metastatic_sites['Placebo'], marker ='d', linestyle='--', label="Placebo")
+plt.plot(Metastatic, Metastatic_sites['Propriva'], marker ='4', linestyle='--', label="Propriva")
+plt.plot(Metastatic, Metastatic_sites['Ramicane'], marker ='*', linestyle='--', label="Ramicane")
+plt.plot(Metastatic, Metastatic_sites['Stelasyn'], marker ='h', linestyle='--', label="Stelasyn")
+plt.plot(Metastatic, Metastatic_sites['Zoniferol'], marker ='1', linestyle='--', label="Zoniferol")
+plt.gca().set(xlabel = 'Treatment Duration (Days)', ylabel = 'Met. Sites',title = 'Metastatic Spread During Treatment',xlim = (0,max(Metastatic)))
+plt.legend(loc = 'best', frameon=True)
+plt.grid()
+# Save the Figure
+
+# Show the Figure
+plt.show()
+
+## Survival Rates
+
+# Store the Count of Mice Grouped by Drug and Timepoint (W can pass any metric)
+# Convert to DataFrame
+mouse_response =  combined.groupby(['Drug','Timepoint']).count()[['Mouse ID']]
+
+
+# Preview DataFrame
+mouse_response.head()
+
+# Minor Data Munging to Re-Format the Data Frames
+# Preview the Data Frame
+Survival_pivot = pd.pivot_table(mouse_response, index='Timepoint', columns='Drug', values='Mouse ID', aggfunc = np.mean)
+Survival_pivot
+
+
+
+
+# Generate the Plot (Accounting for percentages)
+Survival_percentage = Survival_pivot.copy()
+Survival_percentage = round(Survival_percentage.apply(lambda c: c / c.max() * 100, axis=0),2)
+Survival_percentage
+# Save the Figure
+
+# Show the Figure
+Survival_rate =  Survival_percentage.index
+
+plt.figure(figsize=(12,8))
+
+plt.plot(Survival_rate, Survival_percentage['Capomulin'], marker ='o', linestyle='--', label="Capomulin")
+plt.plot(Survival_rate, Survival_percentage['Ceftamin'], marker ='^', linestyle='--', label="Ceftamin")
+plt.plot(Survival_rate, Survival_percentage['Infubinol'], marker ='s', linestyle='--', label="Infubinol")
+plt.plot(Survival_rate, Survival_percentage['Ketapril'], marker ='p', linestyle='--', label="Ketapril")
+plt.plot(Survival_rate, Survival_percentage['Naftisol'], marker ='+', linestyle='--', label="Naftisol")
+plt.plot(Survival_rate, Survival_percentage['Placebo'], marker ='d', linestyle='--', label="Placebo")
+plt.plot(Survival_rate, Survival_percentage['Propriva'], marker ='4', linestyle='--', label="Propriva")
+plt.plot(Survival_rate, Survival_percentage['Ramicane'], marker ='*', linestyle='--', label="Ramicane")
+plt.plot(Survival_rate, Survival_percentage['Stelasyn'], marker ='h', linestyle='--', label="Stelasyn")
+plt.plot(Survival_rate, Survival_percentage['Zoniferol'], marker ='1', linestyle='--', label="Zoniferol")
+plt.gca().set(xlabel = 'Time (Days)', ylabel = 'Survival Rate(%)',title = 'Survival During Treatment',xlim = (0,max(Survival_rate)))
+plt.legend(loc = 'best', frameon=True)
+plt.grid()
+plt.show()
+
+## Summary Bar Graph
+
+# Calculate the percent changes for each drug
+
+# Display the data to confirm
+TumorChangePercent = (((Tumor_response.iloc[-1]-Tumor_response.iloc[0])/Tumor_response.iloc[0])*100).to_frame("% Change")
+TumorChangePercent
+
+
+
+# Store all Relevant Percent Changes into a Tuple
+
+
+# Splice the data between passing and failing drugs
+
+
+# Orient widths. Add labels, tick marks, etc. 
+
+
+# Use functions to label the percentages of changes
+x=TumorChangePercent.index
+y=TumorChangePercent['% Change']
+# Call functions to implement the function calls
+plt.figure(figsize=(16,8))
+colors = ['red' if _y >=0 else 'green' for _y in y]
+
+# Show the Figure
+plt.figure(figsize=(16,8))
+colors = ['red' if _y >=0 else 'green' for _y in y]
+ax = sn.barplot(x, y, palette=colors)
+for n, (label, _y) in enumerate(zip(x, y)):
+    if _y <= 0:
+        ax.annotate(
+            s='{:d}%'.format(trunc(_y)), xy=(n, -10), ha='center',va='center',
+            xytext=(0,10), color='w', textcoords='offset points', weight='bold')
+    else:
+        ax.annotate(
+            s='{:d}%'.format(trunc(_y)), xy=(n, 0), ha='center',va='center',
+            xytext=(0,10), color='w', textcoords='offset points', weight='bold')  
+plt.gca().set(xlabel='Drug', ylabel='% Tumor Volume Change', title='Tumor Change Over 45 Day Treatment')
+plt.rc('grid', linestyle="--", color='black', linewidth=0.5)
+plt.grid(True)
+
+# Save the Figure
+plt.figure(figsize=(16,8))
+colors = ['red' if _y >=0 else 'green' for _y in y]
+
+# Show the Figure
+plt.show()
+
